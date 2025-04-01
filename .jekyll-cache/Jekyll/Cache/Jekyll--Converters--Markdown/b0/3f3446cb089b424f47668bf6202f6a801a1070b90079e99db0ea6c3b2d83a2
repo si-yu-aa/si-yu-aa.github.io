@@ -1,0 +1,16 @@
+I"�<p><a href="https://openai.com/blog/dall-e/">DALL-E</a><sup id="fnref:1"><a href="#fn:1" class="footnote" rel="footnote" role="doc-noteref">1</a></sup> 取得了令人印象深刻的结果，该模型能够根据文本描述生成精确，高质量的图像。它甚至可以产生现实世界中可能不存在的物体渲染，例如“鳄梨形状的扶手椅”。本文将介绍 <a href="https://arxiv.org/pdf/1711.00937.pdf">VQ-VAE</a><sup id="fnref:2"><a href="#fn:2" class="footnote" rel="footnote" role="doc-noteref">2</a></sup>，这是 DALL-E 生成如此多样化和高质量图像分布的关键组件，博客参考<sup id="fnref:3"><a href="#fn:3" class="footnote" rel="footnote" role="doc-noteref">3</a></sup>。</p>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1">
+      <p>OpenAI DALL-E blog: https://openai.com/blog/dall-e/ <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>Aaron van den Oord, Oriol Vinyals, Koray Kavukcuoglu, <a href="https://arxiv.org/pdf/1711.00937.pdf">Neural Discrete Representation Learning</a>, Machine Learning 2017. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p>Charlie Snell, <a href="https://ml.berkeley.edu/blog/posts/vq-vae/">Understanding VQ-VAE</a> <a href="#fnref:3" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+:ET

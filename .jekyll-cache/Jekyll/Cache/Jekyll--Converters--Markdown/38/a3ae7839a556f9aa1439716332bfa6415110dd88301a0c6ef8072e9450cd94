@@ -1,0 +1,2 @@
+I"i<p>目前 GANs 在大部分的图像生成任务上都取得 SOTA 成绩，图像质量的衡量指标通常为 FID，Inception Score 和 Precision，然而这些指标无法体现多样性，GANs 在生成多样性方面比 likelihood-based models 弱，另外 GANs通常比较难训练，如果没有选择合适的超参或正则很容易 collapsing 。</p>
+:ET

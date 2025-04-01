@@ -1,0 +1,10 @@
+I"<p>扩散模型最早是由 Sohl-Dickstein 等人在2015年提出的<sup id="fnref:1"><a href="#fn:1" class="footnote" rel="footnote" role="doc-noteref">1</a></sup>，其模型定义简单且训练高效，但是图片生成质量相比其他生成模型仍有差距，本文工作是在此基础上做的进一步改进。<strong>在扩散过程中，如果每一步都添加很小的高斯噪声，那么在反向生成样本时，采样链转换可以设置成条件高斯</strong>。基于此观察，作者提出了一种扩散模型 <strong>参数化</strong> 方法，可以代替 energy based model 里的 denoising score matching 训练和 annealed Langevin dynamics 采样。</p>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1">
+      <p>Jascha Sohl-Dickstein et al. <a href="https://arxiv.org/abs/1503.03585">“Deep Unsupervised Learning using Nonequilibrium Thermodynamics.”</a> ICML 2015. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+:ET

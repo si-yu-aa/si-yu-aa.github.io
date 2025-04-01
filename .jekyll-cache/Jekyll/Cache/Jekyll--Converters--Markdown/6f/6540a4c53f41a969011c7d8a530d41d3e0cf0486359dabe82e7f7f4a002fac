@@ -1,0 +1,22 @@
+I"�	<p>Classifier-free diffusion guidance<sup id="fnref:1"><a href="#fn:1" class="footnote" rel="footnote" role="doc-noteref">1</a></sup> 可以显著提高样本生成质量，实施起来也十分简单高效，它也是 <a href="https://arxiv.org/abs/2112.10741">OpenAI’s GLIDE</a><sup id="fnref:2"><a href="#fn:2" class="footnote" rel="footnote" role="doc-noteref">2</a></sup> ， <a href="https://openai.com/dall-e-2/">OpenAI’s DALL·E 2</a><sup id="fnref:3"><a href="#fn:3" class="footnote" rel="footnote" role="doc-noteref">3</a></sup> 和 <a href="https://imagen.research.google/">Google’s Imagen</a><sup id="fnref:4"><a href="#fn:4" class="footnote" rel="footnote" role="doc-noteref">4</a></sup>的核心部分， 在这篇博客里我将分享它是如何工作的，部分内容参考<sup id="fnref:5"><a href="#fn:5" class="footnote" rel="footnote" role="doc-noteref">5</a></sup>。</p>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1">
+      <p>Ho, Salimans, “<a href="https://openreview.net/forum?id=qw8AKxfYbI">Classifier-Free Diffusion Guidance</a>”, NeurIPS workshop on DGMs and Applications”, 2021. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>Nichol, Dhariwal, Ramesh, Shyam, Mishkin, McGrew, Sutskever, Chen, “<a href="https://arxiv.org/abs/2112.10741">GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models</a>”, arXiv, 2021. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p>Ramesh, Dhariwal, Nichol, Chu, Chen, “<a href="https://arxiv.org/abs/2204.06125">Hierarchical Text-Conditional Image Generation with CLIP Latents</a>”, arXiv, 2022. <a href="#fnref:3" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:4">
+      <p>Saharia, Chan, Saxena, Li, Whang, Ho, Fleet, Norouzi et al., “<a href="https://arxiv.org/abs/2205.11487">Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding</a>”, arXiv, 2022. <a href="#fnref:4" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:5">
+      <p>Dieleman, Sander，<a href="https://benanne.github.io/2022/05/26/guidance.html">Guidance: a cheat code for diffusion models</a>, dieleman2022guidance. <a href="#fnref:5" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+:ET

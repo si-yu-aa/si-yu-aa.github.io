@@ -1,17 +1,536 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-31T16:33:39+08:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Your awesome title</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.</subtitle><entry><title type="html">我的第一篇文章</title><link href="http://localhost:4000/jekyll/update/2025/03/31/welcome-to-jekyll.html" rel="alternate" type="text/html" title="我的第一篇文章" /><published>2025-03-31T15:48:25+08:00</published><updated>2025-03-31T15:48:25+08:00</updated><id>http://localhost:4000/jekyll/update/2025/03/31/welcome-to-jekyll</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2025/03/31/welcome-to-jekyll.html"><![CDATA[<p>You’ll find this post in your <code class="language-plaintext highlighter-rouge">_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code class="language-plaintext highlighter-rouge">jekyll serve</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-04-01T14:11:01+08:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">siyu</title><subtitle>笔记</subtitle><entry><title type="html">VLM/VLA相关调研</title><link href="http://localhost:4000/2025/04/01/vla.html" rel="alternate" type="text/html" title="VLM/VLA相关调研" /><published>2025-04-01T00:00:00+08:00</published><updated>2025-04-01T00:00:00+08:00</updated><id>http://localhost:4000/2025/04/01/vla</id><content type="html" xml:base="http://localhost:4000/2025/04/01/vla.html"><![CDATA[<h1 id="hv9Zu">VLM</h1>
+<h2 id="qt9xg">Qwen系列</h2>
+<h3 id="s5O1N">qwen-vl（[https://arxiv.org/abs/2308.12966](https://arxiv.org/abs/2308.12966)）</h3>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741597940578-9c18bcc3-a506-4192-80d2-019901d2c6de.png" alt="" /></p>
 
-<p>Jekyll requires blog post files to be named according to the following format:</p>
+<p>qwen-vl的模型结构比较简单，图像处理模块来自clip的ViT-bigG，文本模块采用QwenLM作为主体，两者通过CrossAttn(adapter)进行桥接。adapter的结构会稍微复杂些<img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741602327668-a1a31b95-7111-47f0-9ab3-4b94d25f287e.png" alt="" /></p>
 
-<p><code class="language-plaintext highlighter-rouge">YEAR-MONTH-DAY-title.MARKUP</code></p>
+<p>forward函数根据不同分辨率（支持两种分辨率）计算二维位置编码，分别合并到q和k上，其中q是可训练的参数，长度为256. kv来自vit的输出，最终通过attn映射到固定的256长度，再送入QwenLM进行后续计算。该模块是qwenvl能够分别以224<em>224分辨率和448</em>448分辨率运行的关键，因为无论是哪种分辨率，最终都映射为了256的长度，方便LLM进行处理。</p>
 
-<p>Where <code class="language-plaintext highlighter-rouge">YEAR</code> is a four-digit number, <code class="language-plaintext highlighter-rouge">MONTH</code> and <code class="language-plaintext highlighter-rouge">DAY</code> are both two-digit numbers, and <code class="language-plaintext highlighter-rouge">MARKUP</code> is the file extension representing the format used in the file. After that, include the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+<p>训练时分成了三个阶段，第一阶段用大规模的网络爬虫获取的图文对，收集了5B图文数据，清洗后保留了1.4B，冻结LM层，采用无监督预训练任务。第二阶段采用多任务训练，caption ，vqa，grounding，ref grounding , Grounded Cap  , OCR  , Pure-text Autoregression，数据质量更高，图片分辨率更高，所有的参数都参与训练。第三阶段做SFT，冻结vit模块，主要训练指令跟随和对话能力，数据来源是模型生成+人工标注。</p>
 
-<p>Jekyll also offers powerful support for code snippets:</p>
+<h3 id="h5D17"><font style="color:rgb(25, 27, 31);">Qwen2-VL（</font>[https://arxiv.org/abs/2409.12191](https://arxiv.org/abs/2409.12191)<font style="color:rgb(25, 27, 31);">）</font></h3>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741660391114-fb360ac4-1ae2-4442-bc8f-951252b43337.png" alt="" /></p>
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
-<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
+<font style="color:rgb(25, 27, 31);">Qwen2-vl的模型结构略有改动，LM模块替换为Qwen2，改动较大的是visual encoder模块，vit从绝对位置编码改成2D-ROPE编码，放弃了cross attention改用MLP层，MLP会把2x2的token压缩为1个token，假设原始图像分辨率为224x224，patch size=14，那么vit输出的序列长度为16*16，经过MLP后变成8*8，加上两个special token（ &lt;|vision_start|&gt; and &lt;|vision_end|&gt;  ）最终变为66个token，送入LLM进行处理。 2x2的MLP比较特殊，像是一个特殊的卷积层，为了实现这个特殊的MLP，QWEN2VL提供了前置的图像预处理</font>
+<p><strong><font style="color:rgb(31, 35, 40);background-color:rgb(246, 248, 250);">image_processing_qwen2_vl.py，</font></strong><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741664796991-30ae7683-cdf8-4c5c-9983-facfe796232b.png" alt="" /><font style="color:rgb(25, 27, 31);">会提前将图像切分为patch，然后合并成超大的patch，方便后续进行view操作。</font></p>
 
-<p>Check out the <a href="https://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://talk.jekyllrb.com/">Jekyll Talk</a>.</p>]]></content><author><name></name></author><category term="jekyll" /><category term="update" /><summary type="html"><![CDATA[You’ll find this post in your _posts directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run jekyll serve, which launches a web server and auto-regenerates your site when a file is updated.]]></summary></entry></feed>
+<font style="color:rgb(25, 27, 31);">第二个改进点是M-Rope，原始的qwenvl使用的是rope-1d，M-rope是rope-3d。更详细的解读可以看苏剑林的博客</font>
+<p><a href="https://spaces.ac.cn/archives/10352/comment-page-1">https://spaces.ac.cn/archives/10352/comment-page-1</a></p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742351961129-d12d292f-3e78-40ab-8780-e2051b98093c.png" alt="" /></p>
+
+<p>第三点是qwen2-vl在训练数据中包含了图像和视频数据，视频保留每秒两帧，在attn之前采用深度为2的3d卷积进行压缩</p>
+
+<p>训练方式和qwenvl一致，依旧采用三段式训练。</p>
+
+<h3 id="CF1Lv">qwen2.5vl（[https://arxiv.org/pdf/2502.13923](https://arxiv.org/pdf/2502.13923)）</h3>
+<p>除了lm模块替换为qwen2.5之外，在qwen2vl上的主要优化点：</p>
+
+<p>1、视觉的encoder的一些小调整，例如加入swiglu，RMSnorm。比较大的调整是vit中的大多数attn层换成了 window-based attention。此处的window并不是滑动窗口，而是对图片按照112*112进行分块，然后在块内做attn计算</p>
+
+<p>2、 dynamic FPS sampling和MRoPE  升级。在训练的过程中，对视频的fps进行动态采样，即支持多种fps，为了表示不同fps之间的差别，需嵌入视频的时间信息，因此将MRoPE的id与真实的视频时长对齐，这样就能表示每一帧大概属于原视频的哪个位置。<img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741764100892-fc7476fa-5f07-4a03-8393-59fb5b0d6703.png" alt="" />可以参考这个例子，8秒的视频，每秒截取两帧，因此一共16张图片，如果采用0.5fps进行训练，那么共抽出4张图片送入vit，由于attn之前会用conv3d合并连续的两帧图片，所以最终只剩下2个图片对应的向量，即上图中的0和15. MRoPE是一个三维tuple，对图片或视频来说，是（时间戳，行坐标，列坐标）,对文本来说，是（位置，位置，位置）</p>
+
+<p>3、高质量数据集的扩充。待补充</p>
+
+<h2 id="hbtHs">internVL系列</h2>
+<p>internVL是shanghai ai lab的工作，在各种榜单中排名都比较靠前。internVL1系列比较乱，从1.1到1.5，1.5之前的结构已经弃用，主要介绍1.5（<a href="https://arxiv.org/abs/2404.16821">https://arxiv.org/abs/2404.16821</a>）</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741830744833-1823c597-f99b-4d35-ae53-42417cec7be3.png" alt="" /></p>
+
+<p>在图像的处理方面，internVL-1.5推理时(训练时并不支持)支持最高4K分辨率的图片，处理方式是将图片划分为不重叠的448*448的图像块，，并创建缩略图。每个子图会单独被VIT进行处理，vit处理后，假设输出维度<font style="color:rgb(25, 27, 31);">[BS, 32, 32, dim]，会将其改变成[BS, 32//2, 32//2, dim×(2^2)]，这样token数量就从32*32减少为16*16，减轻了后续LLM的压力。</font></p>
+
+<font style="color:rgb(25, 27, 31);">MLP projector在论文里没有提及太多，但是看tensor的输出shape可以看出，mlp层会把每个token从12800压缩到6144，也就是和llm的hiddensize对齐，然后每张图片的token会直接concat</font>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741844099181-1a6ee90d-f6f8-4620-8327-ec0d66455a37.png" alt="" /></p>
+
+<p>训练是两阶段的，先训练vit和MLP，再做全参数训练</p>
+
+<h3 id="Gym22">internvl-2（[https://internvl.github.io/blog/2024-07-02-InternVL-2.0/](https://internvl.github.io/blog/2024-07-02-InternVL-2.0/)）</h3>
+<p>internvl 2 没有论文，模型结构与intervl 1.5保持一致</p>
+
+<p>主要是优化了训练策略（但是没有说是怎么做的，在2.5vl中提及了做法），额外支持视频和医学图像作为输入，以及支持多种输出，例如输出图像等。但实际上并不是通过internvl2端到端的输出，而是额外接入一些下游decoder。训练时第一阶段只训练mlp层。</p>
+
+<h3 id="hfZlw">internvl-2.5（[https://arxiv.org/abs/2412.05271](https://arxiv.org/abs/2412.05271)）</h3>
+<p>internvl-2.5的模型结构与之前依旧保持一致。在训练阶段额外增加了一个阶段，第一阶段训练MLP projector，第二阶段是vit+MLP，第三阶段是全参数。</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741856251476-2c7a3f5a-bd2f-413d-8a88-591c0e7b0e7c.png" alt="" /></p>
+
+<p>vl2.5提出了一种训练方式叫做<strong><font style="color:rgb(0, 0, 0);">progressive scaling strategy，</font></strong><font style="color:rgb(0, 0, 0);">实际做法是先训练较小版本的模型，比如说vit-6b+20B llm，再训练vit-6b+72B llm，那么在训练vit-6b+72B llm时，就可以在stage1的训练时使用vit-6b+20B llm在stage1.5训练后的vit作为vit-6b+72B llm的视觉模块启动模型，此时可以跳过stage1.5阶段，减少了训练成本。</font></p>
+
+<font style="color:rgb(0, 0, 0);">vl2.5在数据层面做了很多工作，待补充。</font>
+
+<h2 id="mI0yv"><font style="color:rgb(0, 0, 0);">Gemini</font></h2>
+<p>技术报告开源的内容不多，唯一的架构相关图如下</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742206062669-0d4d6720-829c-4ec5-a3e2-38e4555c4300.png" alt="" /></p>
+
+<p>主流的猜测认为Gemini在图像侧使用的是VQVAE等方式，将图片映射为一些离散的token，而模型输出的token也可以被decode成一张图片，从而实现图片的输入和输出。</p>
+
+<h1 id="BTdvn">VLA</h1>
+<h2 id="hUky1">ACT（<font style="color:rgb(25, 27, 31);">Action Chunking with Transformers</font>）系列：</h2>
+<font style="color:rgb(0, 0, 0);">ALOHA（</font>
+<p><a href="https://tonyzhaozh.github.io/aloha/">https://tonyzhaozh.github.io/aloha/</a><font style="color:rgb(0, 0, 0);">）、</font><font style="color:rgb(25, 27, 31);">Mobile ALOHA（</font><a href="https://mobile-aloha.github.io/cn.html">https://mobile-aloha.github.io/cn.html</a><font style="color:rgb(25, 27, 31);">）、ALOHA 2（</font><a href="https://aloha-2.github.io/">https://aloha-2.github.io/</a><font style="color:rgb(25, 27, 31);">）</font></p>
+
+<font style="color:rgb(25, 27, 31);">ALOHA是斯坦福2023年推出的一份工作</font>
+<p><strong><font style="color:rgb(77, 77, 77);">A</font></strong><font style="color:rgb(77, 77, 77);"> </font><strong><font style="color:rgb(77, 77, 77);">L</font></strong><font style="color:rgb(77, 77, 77);">ow-cost </font><strong><font style="color:rgb(77, 77, 77);">O</font></strong><font style="color:rgb(77, 77, 77);">pen-source </font><strong><font style="color:rgb(77, 77, 77);">Ha</font></strong><font style="color:rgb(77, 77, 77);">rdware System for Bimanual Teleoperation</font><font style="color:rgb(25, 27, 31);">，24年在前作的基础上继续推出了Mobile ALOHA，项目从硬件到软件完全开源。ALOHA系列采用transformer架构，采用模仿学习的方式，为了解决模仿学习中的误差的累积问题，提出了ACT（</font><font style="color:rgb(0, 0, 0);">Action Chunking with Transformers</font><font style="color:rgb(25, 27, 31);">）算法。</font></p>
+
+<font style="color:rgb(25, 27, 31);"> </font>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741585904331-5cb6ff33-864f-4c69-97b0-8db006234bc9.png" alt="" /></p>
+
+<font style="color:rgb(25, 27, 31);">解决累计误差的方案是每次预测未来k步的action而不是只预测下一步，并且为了保证动作的连贯性（如果每k步才给model一个动作的observation，模型输出的动作可能会不连贯），在每一步都会预测未来k步的动作，而当前时间步最终采用什么样的action，是历史k步对当前步预测的加权求和（相当于从一个马氏链变成了一个非马氏链）。训练和推理算法如下：</font>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741586424076-ba5e6ef9-a088-4cfc-93e9-dc2f487a53ba.png" alt="" /></p>
+
+<p>模型结构比较简单</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741573251858-16cb1148-5f08-4364-8dfc-57360b9f1fc1.png" alt="" /></p>
+
+<font style="color:rgb(25, 27, 31);">如上图所示，ACT的整体结构类似CVAE模型。左端为z的编码器，通过bert对当前关节位置+未来k步动作序列+posemb进行编码，得到z。右侧为该模型的解码器，transformer架构，蓝色的encoder接收4个摄像头的Emd，关节，和隐变量z，decoder输出未来k步动作序列。损失函数与CVAE基本保持一致，框架可以参考下述代码中的transformer和encoder。</font>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741574222685-06bb8b6a-4812-4e4d-a367-5704f5212a25.png" alt="" /></p>
+
+<font style="color:rgb(25, 27, 31);">Detrvae的forward代码如下：</font>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741575224979-4df793a3-11fc-4ad7-b52b-7ac00dfc0412.png" alt="" /></p>
+
+<p>训练阶段通过encoder生成vae的mu和var，重参数化后映射为一个z。非训练模式直接从0值向量做映射</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741578827571-67068d13-8359-4c37-9e57-c9ade65f504d.png" alt="" /></p>
+
+<p>得到latent input（即z）后，会处理图片，position和关节信息，送入transformer进行处理，transformer结果会经过head分别映射为action和is_pad_hat（疑似废弃变量，未参与loss计算，可能之前用于预测pad token，后面废除了）.</p>
+
+<p>self.transformer中encoder结构与bert一致，decoder结构较为复杂，添加了learnable query作为Q。</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1741589490315-35e56cf2-2817-4bbd-baae-d247f2523cf1.png" alt="" /></p>
+
+<p>模型整体参数只有80M，infer time 0.01s</p>
+
+<font style="color:rgb(25, 27, 31);">Mobile ALOHA</font>
+
+<font style="color:rgb(25, 27, 31);">ALOHA是机械臂，Mobile ALOHA在ALOHA的基础上添加了轮足，模型结构上并没有差异。主要讲述硬件系统，数据构建，任务设置以及实验结果。为了适配数据集，训练方式做了一定调整，相当于多任务学习，也发现了 positive transfer  现象。</font>
+
+<font style="color:rgb(25, 27, 31);">ALOHA 2</font>
+
+<font style="color:rgb(25, 27, 31);">主要是硬件和</font>
+<font style="color:rgba(0, 0, 0, 0.85);">MuJoCo 模型的改进，mujoco是一个物理引擎，常用于仿真训练</font>
+
+<h2 id="fep17">RT系列</h2>
+<font style="color:rgb(25, 27, 31);">RT系列模型是deepmind发表的机器人相关工作，RT-1发布于2022年，RT-2发布于2023年。RT-1（</font>
+<p><a href="https://arxiv.org/abs/2212.06817">https://arxiv.org/abs/2212.06817</a><font style="color:rgb(25, 27, 31);">）模型结构是基于transformer做的改动，主要的发力点是大规模多任务训练（130k数据，700多个任务），依旧是采用行为克隆进行训练。RT-1采用EfficientNet做图像处理，USE做文字处理，通过FiLM模块对两个模态信息进行融合。通过 TokenLearner 模块（一个注意力模块）对token进行选择，最终送入transformer结构输出最终的action。</font></p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742196446806-7bf3767d-c435-42ba-9591-b637946711b9.png" alt="" /></p>
+
+<p>RT-2（<a href="https://arxiv.org/abs/2307.15818">https://arxiv.org/abs/2307.15818</a>）</p>
+
+<p>VLA这个名词最早即在rt-2的文章中提出。虽然rt-1使用了130k数据，但训练出来的模型通用性依旧受限，而短时间内收集数亿的训练数据也不太可能，因此deepmind想要借助已经训练好的VLM，用机器人领域数据做co-fine-tuning，达到端到端的控制以及常识的理解能力。<img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742197923338-9c3fca49-bff0-4435-9511-ead593f12dff.png" alt="" /></p>
+
+<p>RT-2使用的VLM是google的Pali-X和PaLM-E。Pali-X可以看作是Gemini的雏形,PaLM-E也是google的工作，本身就是具身模型，只不过不是直接端到端输出action，而是输出高阶的指令，例如： First grasp yellow block and place it on the table, then grasp the blue block. RT-2直接输出关节的控制命令，8个自由度，每个自由度被离散为256个值，最终一个action可以被8个整数表示，这些token可以采用原来的数字token。训练数据不是只包含了机器人数据，而是结合了来自互联网的原始数据，这样使得策略的泛化性更强。</p>
+
+<p>RT-2释放的最大版本是55B，显然不可能直接部署在机器人上做闭环控制，最终的解决方案是把模型部署在TPU云上，最终实现了1-3hz的控制频率。</p>
+
+<p>数据集构成：<font style="color:rgb(25, 27, 31);">PaLI和Palm-e训练数据：VQA，Caption等，机器人数据来自RT1，控制训练时的采样比例使得机器人数据占50%（或66%）</font></p>
+
+<h2 id="a7hV6">Open VLA（[https://openvla.github.io/](https://openvla.github.io/)）</h2>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742192958915-5df62cb1-4f51-44fd-bf0c-e7259f288bb2.png" alt="" /></p>
+
+<p>7B级别的模型，训练数据970K真实世界的机器人数据。主框架是Llama2，视觉模块是vit。该工作的契机与RT-2相同：<font style="color:rgb(25, 27, 31);">机器人数据集规模远不及互联网数据集，因此采用已有的大模型进行继续训练。</font></p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742193341031-da8d5a63-519b-4f24-86e1-59e985210a33.png" alt="" /></p>
+
+<p>64张A100训练14天，推理时采用bf16单卡4090，控制频率在6hz左右</p>
+
+<h2 id="DkPqc">Diffusion Policy （[https://arxiv.org/abs/2303.04137](https://arxiv.org/abs/2303.04137)）</h2>
+<p>材料<a href="https://zhuanlan.zhihu.com/p/670555655">https://zhuanlan.zhihu.com/p/670555655</a></p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742201607541-3c496cc8-b01d-4f18-846e-4222c3731bdd.png" alt="" /></p>
+
+<p>传统的有监督算法难以解决多峰分布、序列相关性问题。MSE损失函数无法解决多峰问题，而离散化则很难做多步预测，因为高维空间算力成本高且过于离散。为了解决这些问题，作者尝试将DDPM引入到机器人控制领域。</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742204117557-1b079283-0f58-4235-8047-ce80cca57a13.png" alt="" /></p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742203936144-a4db84fe-840e-4939-87ca-2da2e5532f29.png" alt="" /></p>
+
+<p>优势：训练稳定，操作稳定</p>
+
+<p>3080显卡推理，0.1s 推理延迟</p>
+
+<h2 id="RMqzr">Pi0（[https://arxiv.org/abs/2410.24164](https://arxiv.org/abs/2410.24164)）</h2>
+<p>文章主张使用大量的数据预训练机器人，包括各种任务，各种型号机器人甚至非机器人数据，然后再进行下游微调，但是目前缺少大量数据，不确定合适的模型结构，以及不知道训练方式。因此提出了一种原型模型以及对应的训练框架，即Pi0。模型结构如下所示</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742281734602-cc8c6e4c-ba1b-4030-ba4b-79f2dde786dc.png" alt="" /></p>
+
+<p>提出的训练框架即pre-training+post-training。最终开源的模型是在超过1w小时的机器人数据上进行pretrain，并在一系列下游任务上进行微调（例如折叠衣服，擦桌子等）。模型的控制频率在50hz左右。</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742282629901-035a1bc6-a93a-403a-b68a-3ee397394700.png" alt="" /></p>
+
+<p>模型的输入包含图片，语言，关节角向量。图片和关节向量会经过encoder后被线性层投影为tokens。action expert采用流匹配损失进行训练，类似于扩散模型也是去噪模型</p>
+
+<p>在官方的实现中，action expert也是一个gemma模型，action expert和pre-trained VLM在attn层会进行交互，而其他层都是独立的，在前向推理时，pre-trained VLM的结果会被kv cache储存，action expert会在去噪过程中多次运行，为了加速这个过程，因此action expert减少了FFN层的参数。</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742287170145-6b98bee8-6aa5-46b6-8f3b-74be291109b4.png" alt="" /></p>
+
+<h2 id="WnOik">Gemini-ROBOTICS（[https://storage.googleapis.com/deepmind-media/gemini-robotics/gemini_robotics_report.pdf](https://storage.googleapis.com/deepmind-media/gemini-robotics/gemini_robotics_report.pdf)）</h2>
+<p><a href="https://www.youtube.com/watch?v=4MvGnmmP3c0">https://www.youtube.com/watch?v=4MvGnmmP3c0</a></p>
+
+<font style="color:rgb(25, 27, 31);">Gemini Robotics系列推出了两款模型，Gemini Robotics-ER和Gemini Robotics，两个模型都是基于Gemini 2.0架构构建，但并未放出技术细节。Gemini Robotics-ER是一个具身推理的vlm，增强了目标检测，轨迹预测等任务，还可以zero-shot生成机器人执行代码。</font>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742276864669-0cb56e68-8bfe-4f8f-98d5-096ab7696e99.png" alt="" /></p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742277527107-119da1ed-9b5d-44f1-8d8b-a0329595eef4.png" alt="" /></p>
+
+<font style="color:rgb(25, 27, 31);">Gemini Robotics是基于Gemini Robotics-ER进行finetune的VLA，可以直接控制机器人的关节。 Gemini Robotics-ER  这类的模型延迟较高，硬件需求较大。为了解决这些问题Gemini Robotics拆解成了两部分，云端部署VLA backbone，机器端部署 Gemini Robotics decoder  。云端部署的是Gemini Robotics-ER的蒸馏版本，延迟从秒级优化到160ms。云端加机器端一起可以做到250ms延迟，采用action chunk最终可以实现50hz控制频率。</font>
+
+<font style="color:rgb(25, 27, 31);"> </font>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742278394758-061fc3e3-0563-4513-b25e-b9337932f44e.png" alt="" /></p>
+
+<h2 id="Pa0xM">GR00T([https://d1qx31qr3h6wln.cloudfront.net/publications/GR00T_1_Whitepaper.pdf](https://d1qx31qr3h6wln.cloudfront.net/publications/GR00T_1_Whitepaper.pdf))</h2>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742356570058-4f8857c6-c018-427c-9403-97398e52798e.png" alt="" /></p>
+
+<p>VLM+流匹配。模型在训练的时候采用了LAPA的技术，使得可以从人类或机器人的视频中学习动作。</p>
+
+<p>LAPA是一种逆运动学模型，思想是先用间隔时间T的两帧视频训练vq-vae模型，编码时采用x和x_T作为输入，输出隐变量z，解码时输入x和z，输出x_T.  隐变量z会作为潜在动作标签，训练vlm+latent action head基于x预测z，最终会用一部分真实的动作数据集，训练vlm+action head预测真实的动作。</p>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/50337259/1742366000647-fc5cb3a4-a665-413e-a1ef-66357f8e1984.png" alt="" /></p>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>
+
+<font style="color:rgb(25, 27, 31);"></font>]]></content><author><name></name></author><category term="act" /><category term="diffusion" /><category term="vla" /><category term="deep learning" /><category term="generative models" /><category term="LAPA" /><category term="flow matching" /><summary type="html"><![CDATA[一些VLM和VLA模型的简单介绍]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/%7B%22feature%22=%3E%22albumsbg.jpg%22%7D" /><media:content medium="image" url="http://localhost:4000/%7B%22feature%22=%3E%22albumsbg.jpg%22%7D" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">深入理解 Imagen</title><link href="http://localhost:4000/2022/06/06/imagen.html" rel="alternate" type="text/html" title="深入理解 Imagen" /><published>2022-06-06T00:00:00+08:00</published><updated>2022-06-06T00:00:00+08:00</updated><id>http://localhost:4000/2022/06/06/imagen</id><content type="html" xml:base="http://localhost:4000/2022/06/06/imagen.html"><![CDATA[<p>Google Brain 推出的 Imagen<sup id="fnref:1"><a href="#fn:1" class="footnote" rel="footnote" role="doc-noteref">1</a></sup>，再一次突破人类想象力，将文本生成图像的逼真度和语言理解提高到了前所未有的新高度！比前段时间 OpeAI 的 DALL·E 2 <sup id="fnref:2"><a href="#fn:2" class="footnote" rel="footnote" role="doc-noteref">2</a></sup>更强！</p>
+
+<h2 id="imagen">Imagen</h2>
+
+<p>Imagen 的组成：(1) 文本编码器，用于将文本映射成 embeddings 序列 ；(2) 级联条件扩散模型，用于将 embeddings 序列映射成图像，并逐步增加图像分辨率（参见 图 A.4)，以下将详细描述这些组件。</p>
+
+<figure align="center">
+  <img src="/images/image-20220606210644557.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图1: Imagen 网络架构
+    </center>
+    <br />
+</div>
+
+<h3 id="文本编码器">文本编码器</h3>
+
+<p>文本图像模型需要强大的语义文本编码器来捕获任意自然语言文本输入的复杂性和组合性。</p>
+
+<p>在当前的文本到图像模型中通常使用在配对的图文数据集上训练的文本编码器，比如 CLIP。大型的语言模型可以作为另一种选择，例如 BERT、 GPT、 T5 ， 语言模型在纯文本语料库上训练，训练数据远多于成对的图像-文本数据， 所以其可以接触更加丰富和广泛分布的文本。语言模型通常也大得多（例如，PaLM 有 540 B 参数，而 CoCa  有1B 参数）。</p>
+
+<p>Imagen 研究比较了预训练文本编码器：BERT 、T5 和 CLIP。这些文本编码器的权重是冻结的，这样做的好处是可以离线计算文本嵌入，在训练文本到图像生成模型期间，计算或内存占用可以忽略不计。经过实验比较发现文本编码器大小会影响文本到图像生成质量， T5-XXL 在图像-文本对齐、图像逼真度方面可以取得最好的成绩。</p>
+
+<figure align="center">
+  <img src="/images/image-20220606211035406.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图2: 不同文本编码器训练性能比较
+    </center>
+    <br />
+</div>
+
+<figure align="center">
+  <img src="/images/image-20220606211106144.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图3: 不同文本编码器训练收敛比较
+    </center>
+    <br />
+</div>
+
+<h3 id="无分类器指导的扩散模型">无分类器指导的扩散模型</h3>
+
+<p><strong>（1）扩散过程</strong></p>
+
+<p>\(\mathbf{z}_{t}=\alpha_{t} \mathbf{x}+\sigma_{t} \boldsymbol{\epsilon_1}\)，其中 \(\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})\)。</p>
+
+<p>根据正向过程的定义可得：\(\mathbf{z}_s=\alpha_s \mathbf{x}+\sigma_s \boldsymbol{\epsilon_2}\) ，则 \(\mathbf{x}=\frac{1}{\alpha_s}(\mathbf{z}_s-\sigma_s \boldsymbol{\epsilon_2})\)，将 \(\mathbf{x}\) 代入上式得：</p>
+
+\[\mathbf{z}_{t}=\frac{\alpha_{t}}{\alpha_s}(\mathbf{z}_s-\sigma_s \boldsymbol{\epsilon}_2)+\sigma_{t} \boldsymbol{\epsilon_1}=\frac{\alpha_{t}}{\alpha_s}\mathbf{z}_s-\frac{\alpha_{t}\cdot\sigma_s}{\alpha_s}\boldsymbol{\epsilon}_2+\sigma_{t} \boldsymbol{\epsilon_1}=\frac{\alpha_{t}}{\alpha_s}\mathbf{z}_s+\sqrt{\sigma_{t}^2-\frac{\alpha_t^2\cdot\sigma_s^2}{\alpha_s^2}}\cdot\epsilon\]
+
+<p><small>(上式中，两个正太分布相减，其方差应该是相加，但是根据论文的推导方差为相减，这里是个疑问 )</small></p>
+
+<p>定义：\(\sigma_{t \mid s}^{2}=\left(1-e^{\lambda_{t}-\lambda_{s}}\right) \sigma_{t}^{2}\) ，其中 \(\lambda_{t}=\log \left[\alpha_{t}^{2} / \sigma_{t}^{2}\right]\)，则：</p>
+
+\[\mathbf{z}_{t}=\left(\alpha_{t} / \alpha_{s}\right) \mathbf{z}_{s}+\sqrt{\sigma_{t \mid s}^{2}}\cdot\epsilon\]
+
+<p>所以：</p>
+
+\[q\left(\mathbf{z}_{t} \mid \mathbf{x}\right)=\mathcal{N}\left(\mathbf{z}_{t} ; \alpha_{t} \mathbf{x}, \sigma_{t}^{2} \mathbf{I}\right), \quad q\left(\mathbf{z}_{t} \mid \mathbf{z}_{s}\right)=\mathcal{N}\left(\mathbf{z}_{t} ;\left(\alpha_{t} / \alpha_{s}\right) \mathbf{z}_{s}, \sigma_{t \mid s}^{2} \mathbf{I}\right)\]
+
+<p>式中， \(0 \leq s&lt;t \leq 1, \sigma_{t \mid s}^{2}=\left(1-e^{\lambda_{t}-\lambda_{s}}\right) \sigma_{t}^{2}\), \(\alpha_{t}, \sigma_{t}\) 表示可微噪声schedule， \(\lambda_{t}=\log \left[\alpha_{t}^{2} / \sigma_{t}^{2}\right]\) 表示信噪比，其随着时间 \(t\) 逐步降低，直到 \(q\left(\mathbf{z}_{1}\right) \approx \mathcal{N}(\mathbf{0}, \mathbf{I})\)。</p>
+
+<p><strong>（2）生成过程</strong></p>
+
+<p>反转上述扩散过程，可以看作学习解噪 \(\mathbf{z}_{t} \sim q\left(\mathbf{z}_{t} \mid \mathbf{x}\right)\) ，即根据 \(\mathbf{z}_{t}\) 和其他条件估计 \(\mathbf{x}\) ，可以表示成：</p>
+
+\[\hat{\mathbf{x}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right) \approx \mathbf{x}\]
+
+<p>式中， \(\mathbf{c}\) 为可选的条件信息（比如文本embeddings 或者低分辨率图像）。训练 \(\hat{\mathbf{x}}_{\theta}\) 使用加权 MSE 损失函数：</p>
+
+\[\mathbb{E}_{\boldsymbol{\epsilon}, t}\left[w\left(\lambda_{t}\right)\left\|\hat{\mathbf{x}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)-\mathbf{x}\right\|_{2}^{2}\right]\]
+
+<p>式中， \((\mathbf{x}, \mathbf{c})\) 是 数据-条件对, \(t \sim \mathcal{U}([0,1]), \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})\),  \(\alpha_{t}, \sigma_{t}, w_{t}\) 是关于 \(t\) 的函数，其影响样本生成质量。</p>
+
+<p>因为 \(\mathbf{z}_{t}=\alpha_{t} \mathbf{x}+\sigma_{t} \boldsymbol{\epsilon}\)，对 \(\epsilon\) 参数化，则 \(\hat{\mathbf{x}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)=\left(\mathbf{z}_{t}-\sigma_{t} \epsilon_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\right) / \alpha_{t}\) ，所以损失函数可以简化为：</p>
+
+\[\mathbb{E}_{\boldsymbol{\epsilon}, t}\left[w\left(\lambda_{t}\right)\left\|\epsilon_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)-\epsilon\right\|_{2}^{2}\right]\]
+
+<p>训练模型时，使用 Classifier-free guidance 方法，在单个扩散模型上同时训练无条件和带条件目标，具体做法是在训练模型时随机（一般以 \(10 \%\) 的概率）丢弃 \(\mathbf{c}\)，得到 \(\epsilon_{\theta}(\mathbf{z}_{t},\lambda_{t},\mathbf{c})\) 之后，使用下式更新：</p>
+
+\[\tilde{\boldsymbol{\epsilon}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)=w \boldsymbol{\epsilon}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)+(1-w) \boldsymbol{\epsilon}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}\right)\]
+
+<p>式中, \(\boldsymbol{\epsilon}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\) 和 \(\boldsymbol{\epsilon}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}\right)\) 分贝是带条件和无条件的 \(\boldsymbol{\epsilon}\) 预测值， \(w\) 是指导权重，当\(w=1\) 时，抑制了 classifier-free guidance, 当 \(w&gt;1\) 会增强 guidance 的影响。</p>
+
+<p>进一步可以估计 score： \(\tilde{\boldsymbol{\epsilon}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right) \approx-\sigma_{t} \nabla_{\mathbf{z}_{t}} \log p\left(\mathbf{z}_{t} \mid \mathbf{c}\right)\)，其中 \(p\left(\mathbf{z}_{t} \mid \mathbf{c}\right)\) 是以 \(\mathbf{c}\) 为条件关于 \(\mathbf{z}_{t}\) 的概率密度。</p>
+
+<p>为了从扩散模型中采样，可以从随机噪声 \(\mathbf{z}_{1} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})\) 开始，然后使用 DDIM 方法采样，具体过程为：</p>
+
+<ul>
+  <li>
+    <p>step1： 由模型得到 \(\epsilon_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\) 和  \(\epsilon_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}\right)\)，进一步得到 \(\tilde{\boldsymbol{\epsilon}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\);</p>
+  </li>
+  <li>
+    <p>step2：根据 \(\mathbf{z}_{t}\) 和  \(\tilde{\boldsymbol{\epsilon}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\) 得到 \(\hat{\mathbf{x}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)=\left(\mathbf{z}_{t}-\sigma_{t} \tilde{\epsilon_{\theta}}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\right) / \alpha_{t}\) ；</p>
+  </li>
+  <li>
+    <p>step3：估计 \(\mathbf{z}_{s}=\alpha_{s} \hat{\mathbf{x}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)+\sigma_{s}\tilde{\epsilon_{\theta}}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\)</p>
+
+    <p>​                      \(\mathbf{z}_{s}=\alpha_{s} \hat{\mathbf{x}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)+\frac{\sigma_{s}}{\sigma_{t}}\left(\mathbf{z}_{t}-\alpha_{t} \hat{\mathbf{x}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\right)\)</p>
+  </li>
+</ul>
+
+<p>式中， \(s&lt;t\) 在 1 到 0 之间取均匀分布序列，最先的采样来自对扩散过程的反转，注意到：</p>
+
+\[q\left(\mathbf{z}_{s} \mid \mathbf{z}_{t}, \mathbf{x}\right)=\mathcal{N}\left(\mathbf{z}_{s} ; \tilde{\boldsymbol{\mu}}_{s \mid t}\left(\mathbf{z}_{t}, \mathbf{x}\right), \tilde{\sigma}_{s \mid t}^{2} \mathbf{I}\right)\]
+
+<p>式中， \(\tilde{\boldsymbol{\mu}}_{s \mid t}\left(\mathbf{z}_{t}, \mathbf{x}\right)=e^{\lambda_{t}-\lambda_{s}}\left(\alpha_{s} / \alpha_{t}\right) \mathbf{z}_{t}+\left(1-e^{\lambda_{t}-\lambda_{s}}\right) \alpha_{s} \mathbf{x}\) ，并且  \(\tilde{\sigma}_{s \mid t}^{2}=\left(1-e^{\lambda_{t}-\lambda_{s}}\right) \sigma_{s}^{2}\), 遵循随机更新规则：</p>
+
+\[\mathbf{z}_{s}=\tilde{\boldsymbol{\mu}}_{s \mid t}\left(\mathbf{z}_{t}, \hat{\mathbf{x}}_{\theta}\left(\mathbf{z}_{t}, \lambda_{t}, \mathbf{c}\right)\right)+\sqrt{\left(\tilde{\sigma}_{s \mid t}^{2}\right)^{1-\gamma}\left(\sigma_{t \mid s}^{2}\right)^{\gamma}} \boldsymbol{\epsilon}\]
+
+<p>式中， \(\epsilon \sim \mathcal{N}(\mathbf{0}, \mathbf{I})\), 其中 \(\gamma\) 控制采样的随机性。</p>
+
+<h2 id="实施细节">实施细节</h2>
+
+<p>Imagen 的提出的改进主要体现在：</p>
+
+<ul>
+  <li>引入新的动态阈值技术，这样采样器可以使用非常大的无分类器指导权重；</li>
+  <li>在超分辨率模型中引入噪声增强，提高图像逼真度；</li>
+  <li>引入一种新的高效 U-Net 架构，这种架构具有更高的计算效率、更高的内存效率和更快的收敛速度；</li>
+</ul>
+
+<h3 id="阈值技术">阈值技术</h3>
+
+<p>增加 classifier-free guidance 的指导权重可以提高图像-文本的对齐，但会影响图像逼真度，产生高度饱和和不自然的图像。导致这个现象的原因是高指导权重引起训练测试不匹配：在每个采样步 \(t\)，\(x\) 的预测值 \(\hat x_0^t\) 必须与训练数据在同一范围内，即在 [−1, 1] 内。但使用高指导权重会使 \(x\) 预测值超出这些界限。这样就导致训练测试不匹配的情形，扩散模型在整个采样过程中会迭代应用自身输出，这样的采样过程会导致产生不自然的图像，有时甚至发散。</p>
+
+<p>为解决上述训练测试不匹配问题，引入了阈值技术：</p>
+
+<p><strong>静态阈值</strong>：对 \(x\) 的预测值逐元素裁剪到 [-1, 1] ，称为静态阈值。这样方法对于大引导权重的采样至关重要，并可以防止产生空白图片。尽管如此，随着指导权重的增加，静态阈值处理仍会使图像出现过饱和或细节少的问题，伪代码如下：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">sample</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">)):</span>
+        <span class="c1"># Forward pass to get x0_t from z_t.
+</span>        <span class="n">x0_t</span> <span class="o">=</span> <span class="n">nn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="c1"># Static thresholding.
+</span>        <span class="n">x0_t</span> <span class="o">=</span> <span class="n">jnp</span><span class="p">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x0_t</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="c1"># Sampler step.
+</span>        <span class="n">z_tm1</span> <span class="o">=</span> <span class="n">sampler_step</span><span class="p">(</span><span class="n">x0_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">z_t</span> <span class="o">=</span> <span class="n">z_tm1</span>
+    <span class="k">return</span> <span class="n">x0_t</span>
+</code></pre></div></div>
+
+<p><strong>动态阈值</strong>：在每个采样步将 \(s\) 设置为 \(\hat x_0^t\) 中的某个百分位绝对像素值，如果 \(s &gt; 1\)，那么我们将 \(\hat x^t_0\) 调整到 [−s, s] 范围内，然后除以 \(s\)。动态阈值处理可以推动饱和像素（接近 -1 或 1) 向内收缩，从而主动防止像素在每一步产生饱和。这可显著提高图像的真实感，以及更好的图像文本对齐，尤其是在使用非常大的引导权重时，伪代码如下：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">)):</span>
+        <span class="c1"># Forward pass to get x0_t from z_t.
+</span>        <span class="n">x0_t</span> <span class="o">=</span> <span class="n">nn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="c1"># Dynamic thresholding (ours).
+</span>        <span class="n">s</span> <span class="o">=</span> <span class="n">jnp</span><span class="p">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">jnp</span><span class="p">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">x0_t</span><span class="p">),</span> <span class="n">p</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x0_t</span><span class="p">.</span><span class="n">ndim</span><span class="p">)))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">jnp</span><span class="p">.</span><span class="nb">max</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">x0_t</span> <span class="o">=</span> <span class="n">jnp</span><span class="p">.</span><span class="n">clip</span><span class="p">(</span><span class="n">x0_t</span><span class="p">,</span> <span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="n">s</span>
+        <span class="c1"># Sampler step.
+</span>        <span class="n">z_tm1</span> <span class="o">=</span> <span class="n">sampler_step</span><span class="p">(</span><span class="n">x0_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">z_t</span> <span class="o">=</span> <span class="n">z_tm1</span>
+    <span class="k">return</span> <span class="n">x0_t</span>
+</code></pre></div></div>
+
+<figure align="center">
+  <img src="/images/image-20220606111105610.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图4: 使用 text-to-image 64 × 64 base 模型，比较了不同阈值方法的 CLIP 与 FID-10K score pareto frontiers。可以看出在较大的引导权重范围内，动态阈值方法可以取得明显更好的 CLIP 分数，以及相当甚至更好的 FID 分数
+    </center>
+    <br />
+</div>
+
+<figure align="center">
+  <img src="/images/image-20220606111128575.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图5: 不同阈值方法生成的图像
+    </center>
+    <br />
+</div>
+
+<h3 id="噪声增强">噪声增强</h3>
+
+<p>Imagen 利用一个 64×64 base 模型，和两个文本条件超分辨率扩散模型，分别将生成的 64 × 64 图像上采样到 256 × 256 ，然后再上采样到 1024 × 1024 。 Imagen 对两个超分辨率模型都使用噪声调节增强 ，这对于生成高逼真度的图像至关重要。</p>
+
+<p>训练时随机选择 aug_level ，推理时，选择比较不同的 aug_level 以找到最佳的样本质量。增强级别的范围 aug_level ∈ [0, 1] ，在实践中 aug_level 取 [0.1, 0.3] 的 会取得更好的效果，伪代码如下：</p>
+
+<p>训练过程：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">train_step</span><span class="p">(</span>
+    <span class="n">x_lr</span><span class="p">:</span> <span class="n">jnp</span><span class="p">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x_hr</span><span class="p">:</span> <span class="n">jnp</span><span class="p">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="c1"># Add augmentation to the low-resolution image.
+</span>    <span class="n">aug_level</span> <span class="o">=</span> <span class="n">jnp</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">x_lr</span> <span class="o">=</span> <span class="n">apply_aug</span><span class="p">(</span><span class="n">x_lr</span><span class="p">,</span> <span class="n">aug_level</span><span class="p">)</span>
+    <span class="c1"># Diffusion forward process.
+</span>    <span class="n">t</span> <span class="o">=</span> <span class="n">jnp</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">z_t</span> <span class="o">=</span> <span class="n">forward_process</span><span class="p">(</span><span class="n">x_hr</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">Optimize</span> <span class="n">loss</span><span class="p">(</span><span class="n">x_hr</span><span class="p">,</span> <span class="n">nn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">x_lr</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">aug_level</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>采样过程：</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="n">aug_level</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">x_lr</span><span class="p">:</span> <span class="n">jnp</span><span class="p">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="c1"># Add augmentation to the low-resolution image.
+</span>    <span class="n">x_lr</span> <span class="o">=</span> <span class="n">apply_aug</span><span class="p">(</span><span class="n">x_lr</span><span class="p">,</span> <span class="n">aug_level</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">)):</span>
+        <span class="n">x_hr_t</span> <span class="o">=</span> <span class="n">nn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">x_lr</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">aug_level</span><span class="p">)</span>
+        <span class="c1"># Sampler step.
+</span>        <span class="n">z_tm1</span> <span class="o">=</span> <span class="n">sampler_step</span><span class="p">(</span><span class="n">x_hr_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">z_t</span> <span class="o">=</span> <span class="n">z_tm1</span>
+    <span class="k">return</span> <span class="n">x_hr_t</span>
+</code></pre></div></div>
+
+<figure align="center">
+  <img src="/images/image-20220606115013668.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图6: 64×64→256×256 超分辨率模型的 CLIP 与 FID-10K 的 pareto frontiers， aug_level 为在推理期间，在输入的低分辨率图像上实施的噪声增强级别，当 aug_level = 0 时，表示无噪声，对于所有指导权重值，都可以得到最佳 FID 分数，虽然较大的 aug_level 会影响 FID 分数，但它能产生更广的 CLIP 分数范围，意味着模型可以生成更多样的样本。
+    </center>
+    <br />
+</div>
+
+<figure align="center">
+  <img src="/images/image-20220606114428973.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图7: 使用大 aug_level 值和高指导权重，Imagen 在 64 × 64 图像基础上，输入不同的文本提示，生成不同变体。
+    </center>
+    <br />
+</div>
+
+<h3 id="网络架构">网络架构</h3>
+
+<p><strong>Base 模型：</strong> 64 × 64 文本到图像 base 扩散模型使用 <sup id="fnref:3"><a href="#fn:3" class="footnote" rel="footnote" role="doc-noteref">3</a></sup> 中的 U-Net 架构，调整点：（1）在整个文本嵌入序列的多个分辨率上添加交叉注意力；（2）在注意力和池化层的文本嵌入做层归一化。</p>
+
+<p><strong>超分辨率模型：</strong>对于 64 × 64 → 256 × 256→ 1024 × 1024 的超分辨率模型，所使用的 U-Net 模型改编自 [40, 58]。为了提高记忆力效率、推理时间和收敛速度，对 U-Net 做了调整，称做 Efficient U-Net 。调整点：移除 self-attention 层，保留文本 cross-attention 层。在 64 × 64 → 256 × 256 的超分辨率任务上，U-Net 和 Efficient U-Net 的性能对比如下图，可以看出 Efficient U-Net 的收敛速度明显快于 U-Net, 并且可以获得更好的性能，此外 Efficient U-Net 在采样速度上也可以加快 ×2 − 3 倍。</p>
+
+<figure align="center">
+  <img src="/images/image-20220606110602246.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图8: U-Net 与 Efficient U-Net 的收敛速度比较
+    </center>
+    <br />
+</div>
+<figure align="center">
+  <img src="/images/image-20220606110057800.png" style="zoom:60%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图9: Efficient U-Net architecture for 642 → 2562
+    </center>
+    <br />
+</div>
+
+<p>ResNetBlock 在 DBlock 和 UBlock 都会被使用，ResNetBlock 的 超参数是 channels 数。</p>
+
+<figure align="center">
+  <img src="/images/image-20220606105557305.png" style="zoom:40%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图10: Efficient U-Net ResNetBlock
+    </center>
+    <br />
+</div>
+
+<p>DBlock 的超参数是：下采样步长 stride: Optional [Tuple[int, int]]，每个 DBlock 的 ResNetBlock 数量 numResNetBlocksPerBlock：int，通道数 channels：int， 虚线块是可选的，例如，并非每个 DBlock 都需要下采样或需要自注意。</p>
+
+<figure align="center">
+  <img src="/images/image-20220606105820690.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图11: Efficient UNet DBlock
+    </center>
+    <br />
+</div>
+
+<p>UBlock 的超参数是：上采样步长 stride: Optional[Tuple[int, int]]，每个 DBlock 的 ResNetBlock 数量 numResNetBlocksPerBlock：int，通道数 channels：int， 虚线块是可选的。</p>
+
+<figure align="center">
+  <img src="/images/image-20220606105848696.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图12: Efficient U-Net UBlock
+    </center>
+    <br />
+</div>
+
+<p><strong>文本嵌入和模型尺寸：</strong>图 A.13a 比较了对文本嵌入进行平均池化、注意力池化和交叉注意力的性能，使用交叉注意力可以取得更好的性能。图 A.13b 绘制了 64 × 64  各种 U-Net 模型大小的 CLIP-FID 得分权衡曲线。 随着模型的增大，可以获得更好的权衡曲线；另外，增大文本编码器模型相比 U-Net 模型，会产生更好的结果。</p>
+
+<figure align="center">
+  <img src="/images/image-20220606121529918.png" style="zoom:100%" />
+</figure>
+<div>
+    <center style="color:#C0C0C0;text-decoration:underline;font-size: 15px">
+        图13: 不同文本编码器条件模式和U-Net 模型大小性能比较
+    </center>
+    <br />
+</div>
+
+<h2 id="参考">参考</h2>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1">
+      <p><a href="https://imagen.research.google/">Imagen: Text-to-Image Diffusion Models (research.google)</a> <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:2">
+      <p>OpenAI DALL-E blog: https://openai.com/blog/dall-e/ <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:3">
+      <p>Alex Nichol and Prafulla Dhariwal. Improved denoising diffusion probabilistic models. arXiv preprint arXiv:2102.09672, 2021. <a href="#fnref:3" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>]]></content><author><name></name></author><category term="imagen" /><category term="diffusion" /><category term="score function" /><category term="guidance" /><category term="deep learning" /><category term="generative models" /><summary type="html"><![CDATA[关于 Photorealistic Text-to-Image Diffusion Models with Deep Language Understanding 的探讨]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/%7B%22feature%22=%3E%22albumsbg.jpg%22%7D" /><media:content medium="image" url="http://localhost:4000/%7B%22feature%22=%3E%22albumsbg.jpg%22%7D" xmlns:media="http://search.yahoo.com/mrss/" /></entry></feed>

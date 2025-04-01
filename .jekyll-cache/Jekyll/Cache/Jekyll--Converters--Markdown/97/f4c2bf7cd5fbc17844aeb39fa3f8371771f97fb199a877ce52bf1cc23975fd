@@ -1,0 +1,6 @@
+I"˜<p>My name is Sun Lin. Iâ€™m a research scientist at <a href="http://deepmind.com/">DeepMind</a> in London, UK, where I work on generative modelling and music generation, among other things. Before that, I was a PhD student at <a href="http://www.ugent.be/">Ghent University</a> in Belgium. On this blog, I mostly write about machine learning, deep learning, music information retrieval (MIR), recommender systems and generative models.</p>
+
+<p>My PhD research topic was learning hierarchical representations of musical audio signals for classification and recommendation, with a focus on <em>deep learning</em> and <em>feature learning</em>. More information can be found on the <a href="/research">Research</a> page. The PDF version of my thesis is <a href="https://www.dropbox.com/s/22bqmco45179t7z/thesis-FINAL.pdf">available for download</a>.</p>
+
+<p>During my PhD, I was also quite active on <a href="https://www.kaggle.com/">Kaggle</a>. A few write-ups about my experience with Kaggle competitions are available on this blog. I was also one of the lead developers of the Theano-based neural network library <a href="https://github.com/Lasagne/Lasagne">Lasagne</a>.</p>
+:ET

@@ -1,0 +1,2 @@
+I"�<p>If you’re training or sampling from generative models, <strong>typicality</strong> is a concept worth understanding. It sheds light on why beam search doesn’t work for autoregressive models of images, audio and video; why you can’t just threshold the likelihood to perform anomaly detection with generative models; and why high-dimensional Gaussians are “soap bubbles”. This post is a summary of my current thoughts on the topic.</p>
+:ET
